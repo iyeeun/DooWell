@@ -1,0 +1,14 @@
+{
+  "buildCommand": "pnpm --filter @web24/shared build && pnpm --filter @web24/frontend build",
+  "outputDirectory": "apps/frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://RAILWAY_BACKEND_URL/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

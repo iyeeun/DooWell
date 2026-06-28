@@ -25,13 +25,11 @@ async function bootstrap() {
     app.set('trust proxy', 1);
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    app.enableCors({
-      origin: process.env.FE_URL ?? 'http://localhost:5173',
-      credentials: true,
-      methods: 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    });
-  }
+  app.enableCors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    credentials: true,
+    methods: 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  });
 
   app.setGlobalPrefix('api');
   app.useGlobalInterceptors(new LoggingInterceptor());

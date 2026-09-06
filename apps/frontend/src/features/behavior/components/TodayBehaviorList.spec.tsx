@@ -126,7 +126,7 @@ describe('TodayBehaviorList', () => {
     fireEvent.click(toggleButton);
 
     await waitFor(() => {
-      expect(onToggleMock).toHaveBeenCalledWith('1');
+      expect(onToggleMock).toHaveBeenCalledWith(mockBehaviors[0]);
     });
   });
 

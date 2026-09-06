@@ -11,9 +11,7 @@ interface ToggleBehaviorVars {
 
 interface UseTodayBehaviorsDisplayProps {
   behaviors: Behavior[];
-  toggleMutation: {
-    mutate: (variables: ToggleBehaviorVars) => void;
-  };
+  toggleMutation: (variables: ToggleBehaviorVars) => void;
   handleRewardInteraction: (templateId?: string) => void;
 }
 
@@ -54,36 +52,30 @@ export function useTodayBehaviorsDisplay({
     });
   }, [behaviors, getSortedBehaviors]);
 
-  const handleBehaviorToggle = useCallback(
-    (id: string) => {
-      const target = findItemById(displayBehaviors, id);
-      if (!target) return;
+  const handleBehaviorToggle = (target: Behavior) => {
+    const nextIsChecked = !target.isChecked;
+    const nextStatus = nextIsChecked ? 'completed' : 'pending';
 
-      const nextIsChecked = !target.isChecked;
-      const nextStatus = nextIsChecked ? 'completed' : 'pending';
+    // UI 즉시 반영 (순서 고정)
+    setDisplayBehaviors((prev) =>
+      prev.map((b) => (b.id === target.id ? { ...b, isChecked: nextIsChecked } : b)),
+    );
 
-      // UI 즉시 반영 (순서 고정)
-      setDisplayBehaviors((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, isChecked: nextIsChecked } : b)),
-      );
+    // 두두 인터랙션 즉시 실행
+    if (nextStatus === 'completed') {
+      handleRewardInteraction(target.goalTemplateId);
+    }
 
-      // 두두 인터랙션 즉시 실행
-      if (nextStatus === 'completed') {
-        handleRewardInteraction(target.goalTemplateId);
-      }
+    // 지연 정렬 및 API 요청
+    if (sortTimeoutRef.current) clearTimeout(sortTimeoutRef.current);
 
-      // 지연 정렬 및 API 요청
-      if (sortTimeoutRef.current) clearTimeout(sortTimeoutRef.current);
-
-      sortTimeoutRef.current = setTimeout(() => {
-        toggleMutation.mutate({ id, nextStatus });
-        // 정렬 수행
-        setDisplayBehaviors((prev) => getSortedBehaviors(prev));
-        sortTimeoutRef.current = null;
-      }, CHECK_SORT_DELAY_MS);
-    },
-    [displayBehaviors, getSortedBehaviors, handleRewardInteraction, toggleMutation],
-  );
+    sortTimeoutRef.current = setTimeout(() => {
+      toggleMutation({ id: target.id, nextStatus });
+      // 정렬 수행
+      setDisplayBehaviors((prev) => getSortedBehaviors(prev));
+      sortTimeoutRef.current = null;
+    }, CHECK_SORT_DELAY_MS);
+  };
 
   useEffect(
     () => () => {

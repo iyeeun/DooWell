@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Hero } from '@/features/home/components/Hero';
 import useDodoChatStore from '@/stores/useDodoChatStore';
 import { useDodoToast } from '@/shared/hooks/useDodoToast';
@@ -23,9 +23,9 @@ export function IndexPage() {
   const { data: behaviors = [] } = useTodayBehaviorsQuery(user?.id);
   const { data: goals = [] } = useGoalsQuery();
 
-  const toggleMutation = useToggleTodayBehaviorMutation();
-  const deleteMutation = useDeleteTodayBehaviorMutation();
-  const refreshMutation = useRefreshTodayBehaviorsMutation();
+  const { mutate: toggleMutation } = useToggleTodayBehaviorMutation();
+  const { mutate: deleteMutation } = useDeleteTodayBehaviorMutation();
+  const { mutate: refreshMutation } = useRefreshTodayBehaviorsMutation();
 
   const { quote, resetQuote } = useDodoChatStore();
   const {
@@ -36,7 +36,7 @@ export function IndexPage() {
   } = useAIBehaviors();
   const showToast = useDodoToast();
   const heroRef = useRef<HTMLDivElement>(null);
-  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  const isHeroVisible = useRef(true);
 
   useAutoWebPushSubscribe({ enabled: !!user, mode: 'silent' });
 
@@ -49,7 +49,7 @@ export function IndexPage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsHeroVisible(entry.isIntersecting);
+        isHeroVisible.current = entry.isIntersecting;
       },
       { threshold: 0.1, rootMargin: `-${headerHeight}px 0px 0px 0px` },
     );
@@ -62,12 +62,14 @@ export function IndexPage() {
   }, [headerHeight]);
 
   const handleRewardInteraction = (templateId?: string) => {
+    const currentQuote = useDodoChatStore.getState().quote;
+
     const lines = (templateId && REWARD_LINES[templateId]) || REWARD_LINES.default;
     let rewardQuote = getRandomElement(lines) || '';
-    if (lines.length > 1 && rewardQuote === quote) {
+    if (lines.length > 1 && rewardQuote === currentQuote) {
       let nextQuote = rewardQuote;
       let attempts = 0;
-      while (nextQuote === quote && attempts < 5) {
+      while (nextQuote === currentQuote && attempts < 5) {
         nextQuote = getRandomElement(lines) || '';
         attempts += 1;
       }
@@ -75,7 +77,7 @@ export function IndexPage() {
     }
 
     useDodoChatStore.getState().setQuote(rewardQuote);
-    if (!isHeroVisible) {
+    if (!isHeroVisible.current) {
       showToast(rewardQuote, { position: 'top' });
     }
   };
@@ -93,7 +95,7 @@ export function IndexPage() {
   };
 
   const handleBehaviorDelete = (id: string) => {
-    deleteMutation.mutate(id, {
+    deleteMutation(id, {
       onError: () => toast('삭제에 실패했습니다.'),
     });
   };
@@ -115,7 +117,7 @@ export function IndexPage() {
   };
 
   const handleRefreshTodayBehaviors = () => {
-    refreshMutation.mutate(undefined, {
+    refreshMutation(undefined, {
       onError: () => toast('새로고침에 실패했습니다.'),
     });
   };

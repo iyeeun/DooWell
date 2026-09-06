@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 
 interface TodayBehaviorCardGridProps {
   behaviors: Behavior[];
-  onToggle: (id: string) => void;
+  onToggle: (target: Behavior) => void;
   onDelete?: (id: string) => void;
   openAddModal: () => void;
 }
@@ -21,8 +21,8 @@ export function TodayBehaviorCardGrid({
         <BehaviorCard
           key={behavior.id}
           behavior={behavior}
-          onToggle={() => onToggle(behavior.id)}
-          onDelete={onDelete ? () => onDelete(behavior.id) : undefined}
+          onToggle={onToggle}
+          onDelete={onDelete}
         />
       ))}
 

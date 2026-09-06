@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import type { Behavior } from '@/shared/components/behavior/BehaviorCard.types';
 import { GOAL_COLOR_STYLES } from '@/shared/constants/goalColor';
 import { Trash2 } from 'lucide-react';
@@ -8,11 +8,11 @@ import { DifficultyBadge } from './DifficultyBadge';
 
 interface BehaviorProps {
   behavior: Behavior;
-  onToggle: () => void;
-  onDelete?: () => void;
+  onToggle: (target: Behavior) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function BehaviorCard({ behavior, onToggle, onDelete }: BehaviorProps) {
+function BehaviorCardBase({ behavior, onToggle, onDelete }: BehaviorProps) {
   const bgColor = GOAL_COLOR_STYLES[behavior.goalColor].bg;
   const [isActionVisible, setIsActionVisible] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -103,7 +103,7 @@ export function BehaviorCard({ behavior, onToggle, onDelete }: BehaviorProps) {
         <StickerCell
           isFilled={behavior.isChecked}
           isClickable
-          onClick={onToggle}
+          onClick={() => onToggle(behavior)}
           ariaLabel={`${behavior.title} 완료 토글`}
           ariaPressed={behavior.isChecked}
           stickerColor={behavior.goalColor}
@@ -133,7 +133,7 @@ export function BehaviorCard({ behavior, onToggle, onDelete }: BehaviorProps) {
             type="button"
             onClick={() => {
               closeDeleteModal();
-              onDelete?.();
+              onDelete?.(behavior.id);
             }}
             className="bg-difficulty-4 text-bg-light rounded-lg px-4 py-2 text-sm font-semibold transition hover:bg-[#c53a3a]"
           >
@@ -144,3 +144,5 @@ export function BehaviorCard({ behavior, onToggle, onDelete }: BehaviorProps) {
     </div>
   );
 }
+
+export const BehaviorCard = memo(BehaviorCardBase);

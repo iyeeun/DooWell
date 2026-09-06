@@ -14,7 +14,7 @@ import { TodayBehaviorCardGrid } from './TodayBehaviorCardGrid';
 interface BehaviorListProps {
   goals: GetGoalSummary[];
   behaviors: Behavior[];
-  onToggle: (id: string) => void;
+  onToggle: (target: Behavior) => void;
   onRefresh?: () => void;
   onDelete?: (id: string) => void;
 }

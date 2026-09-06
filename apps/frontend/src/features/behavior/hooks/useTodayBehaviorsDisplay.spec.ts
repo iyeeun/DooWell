@@ -28,7 +28,7 @@ const mockBehaviors: Behavior[] = [
 ];
 
 describe('useTodayBehaviorsDisplay', () => {
-  const toggleMutation = { mutate: vi.fn() };
+  const toggleMutation = vi.fn();
   const handleRewardInteraction = vi.fn();
 
   beforeEach(() => {
@@ -63,13 +63,13 @@ describe('useTodayBehaviorsDisplay', () => {
     );
 
     act(() => {
-      result.current.handleBehaviorToggle('1');
+      result.current.handleBehaviorToggle(mockBehaviors[0]);
     });
 
     // 1. UI는 즉시 반영됨
     expect(result.current.displayBehaviors[0].isChecked).toBe(true);
     // 2. 하지만 mutate는 아직 호출되지 않음 (0.8초 대기)
-    expect(toggleMutation.mutate).not.toHaveBeenCalled();
+    expect(toggleMutation).not.toHaveBeenCalled();
     // 3. 완료 상태가 되었으므로 인터랙션은 즉시 호출됨
     expect(handleRewardInteraction).toHaveBeenCalledWith('t1');
   });
@@ -84,7 +84,7 @@ describe('useTodayBehaviorsDisplay', () => {
     );
 
     act(() => {
-      result.current.handleBehaviorToggle('1');
+      result.current.handleBehaviorToggle(mockBehaviors[0]);
     });
 
     // 시간을 0.8초 뒤로 돌림
@@ -93,7 +93,7 @@ describe('useTodayBehaviorsDisplay', () => {
     });
 
     // 1. API 요청 발생
-    expect(toggleMutation.mutate).toHaveBeenCalledWith({ id: '1', nextStatus: 'completed' });
+    expect(toggleMutation).toHaveBeenCalledWith({ id: '1', nextStatus: 'completed' });
     // 2. 정렬이 수행되어 체크된 항목이 뒤로 밀려남
     expect(result.current.displayBehaviors[0].id).toBe('2');
     expect(result.current.displayBehaviors[1].id).toBe('1');

@@ -58,7 +58,10 @@ export class GoalController {
 
   @Get('templates')
   async getTemplates(): Promise<GoalTemplateListResponse> {
-    const filePath = join(process.cwd(), 'src/features/goal/goal-templates.ndjson');
+    const backendRoot = process.cwd().endsWith(join('apps', 'backend'))
+      ? process.cwd()
+      : join(process.cwd(), 'apps/backend');
+    const filePath = join(backendRoot, 'src/features/goal/goal-templates.ndjson');
     const raw = await readFile(filePath, 'utf-8');
     const templates = raw
       .split(/\r?\n/)

@@ -1,6 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 
-import { registerChatApi } from 'src/features/chat/chat.docs';
+import { registerChatApi } from '../../features/chat/chat.docs';
 import { registerCommonSchemas } from './common.docs';
 import { registerBehaviorApi } from '../../features/behavior/behavior.docs';
 import { registerGoalApi } from '../../features/goal/goal.docs';

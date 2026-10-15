@@ -21,20 +21,34 @@ import { AuthModule } from './features/auth/auth.module';
 import { StatModule } from './features/stat/stat.module';
 import { PushModule } from './features/push/push.module';
 import { ChatModule } from './features/chat/chat.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.production.local', '.env.development.local'],
+      envFilePath: [
+        '.env.production.local',
+        '.env.development.local',
+        'apps/backend/.env.production.local',
+        'apps/backend/.env.development.local',
+      ],
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'production').default('development'),
         PORT: Joi.number().port().default(3000),
-        DB_HOST: Joi.string().required(),
-        DB_PORT: Joi.number().port().required(),
-        DB_USER: Joi.string().required(),
-        DB_PASS: Joi.string().required(),
-        DB_NAME: Joi.string().required(),
+        DATABASE_URL: Joi.string()
+          .uri({ scheme: ['postgres', 'postgresql'] })
+          .optional(),
+        DIRECT_DATABASE_URL: Joi.string()
+          .uri({ scheme: ['postgres', 'postgresql'] })
+          .optional(),
+        DB_HOST: Joi.string().optional(),
+        DB_PORT: Joi.number().port().optional(),
+        DB_USER: Joi.string().optional(),
+        DB_PASS: Joi.string().optional(),
+        DB_NAME: Joi.string().optional(),
+        DATABASE_POOL_MAX: Joi.number().integer().min(1).optional(),
+        DATABASE_SSL: Joi.boolean().optional(),
         SESSION_SECRET: Joi.string().required(),
         SESSION_MAX_AGE_MS: Joi.number().required(),
         CLOVA_API_KEY: Joi.string().required(),
@@ -46,19 +60,38 @@ import { ChatModule } from './features/chat/chat.module';
         GOOGLE_CALLBACK_URL: Joi.string().required(),
         FRONTEND_URL: Joi.string().required(),
         SLACK_WEBHOOK_URL: Joi.string().uri().optional(),
-      }),
+        CRON_SECRET: Joi.string().min(16).optional(),
+      })
+        .or('DATABASE_URL', 'DB_HOST')
+        .and('DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASS', 'DB_NAME'),
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const isProd = config.getOrThrow('NODE_ENV') === 'production';
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const poolMax = config.get<number>('DATABASE_POOL_MAX') ?? (process.env.VERCEL ? 1 : 10);
+        const useSsl = config.get<boolean>('DATABASE_SSL') ?? isProd;
         return {
           type: 'postgres',
-          host: config.getOrThrow<string>('DB_HOST'),
-          port: config.getOrThrow<number>('DB_PORT'),
-          username: config.getOrThrow<string>('DB_USER'),
-          password: config.getOrThrow<string>('DB_PASS'),
-          database: config.getOrThrow<string>('DB_NAME'),
+          ...(databaseUrl
+            ? {
+                url: databaseUrl,
+                ssl: useSsl ? { rejectUnauthorized: false } : false,
+              }
+            : {
+                host: config.getOrThrow<string>('DB_HOST'),
+                port: config.getOrThrow<number>('DB_PORT'),
+                username: config.getOrThrow<string>('DB_USER'),
+                password: config.getOrThrow<string>('DB_PASS'),
+                database: config.getOrThrow<string>('DB_NAME'),
+              }),
+          extra: {
+            max: poolMax,
+            keepAlive: true,
+            idleTimeoutMillis: 10_000,
+            connectionTimeoutMillis: 10_000,
+          },
           entities: [
             JobExecutionEntity,
             StepExecutionEntity,
@@ -80,19 +113,35 @@ import { ChatModule } from './features/chat/chat.module';
     PushModule,
     ChatModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [
     {
       provide: 'PG_POOL',
       inject: [ConfigService],
-      useFactory: (config: ConfigService) =>
-        new Pool({
-          host: config.getOrThrow<string>('DB_HOST'),
-          port: config.getOrThrow<number>('DB_PORT'),
-          user: config.getOrThrow<string>('DB_USER'),
-          password: config.getOrThrow<string>('DB_PASS'),
-          database: config.getOrThrow<string>('DB_NAME'),
-        }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const max = config.get<number>('DATABASE_POOL_MAX') ?? (process.env.VERCEL ? 1 : 10);
+        const isProd = config.getOrThrow('NODE_ENV') === 'production';
+        const useSsl = config.get<boolean>('DATABASE_SSL') ?? isProd;
+        return new Pool({
+          ...(databaseUrl
+            ? {
+                connectionString: databaseUrl,
+                ssl: useSsl ? { rejectUnauthorized: false } : false,
+              }
+            : {
+                host: config.getOrThrow<string>('DB_HOST'),
+                port: config.getOrThrow<number>('DB_PORT'),
+                user: config.getOrThrow<string>('DB_USER'),
+                password: config.getOrThrow<string>('DB_PASS'),
+                database: config.getOrThrow<string>('DB_NAME'),
+              }),
+          max,
+          keepAlive: true,
+          idleTimeoutMillis: 10_000,
+          connectionTimeoutMillis: 10_000,
+        });
+      },
     },
   ],
 })
@@ -118,7 +167,7 @@ export class AppModule implements NestModule {
       cookie: {
         httpOnly: true,
         secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
+        sameSite: 'lax',
         maxAge: this.configService.getOrThrow<number>('SESSION_MAX_AGE_MS'),
       },
     });

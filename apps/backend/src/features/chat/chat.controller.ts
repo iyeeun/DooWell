@@ -1,8 +1,5 @@
 import { Body, Controller, Post, Get, UseGuards, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { SessionAuthGuard } from 'src/common/guards/session-auth.guard';
-import { UserId } from 'src/common/decorators/user-id.decorator';
-import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
   type DodoChatHistoryResponse,
   DodoChatHistoryRequestSchema,
@@ -11,6 +8,9 @@ import {
   type DodoChatResponse,
   type DodoChatHistoryRequest,
 } from '@web24/shared';
+import { SessionAuthGuard } from '../../common/guards/session-auth.guard';
+import { UserId } from '../../common/decorators/user-id.decorator';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { ChatService } from './chat.service';
 
 @Controller('chat')

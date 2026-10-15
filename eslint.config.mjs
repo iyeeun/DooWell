@@ -13,6 +13,7 @@ const compat = new FlatCompat({
 });
 
 const tsconfigProjects = [
+  './api/tsconfig.json',
   './apps/frontend/tsconfig.eslint.json',
   './apps/backend/tsconfig.eslint.json',
   './packages/shared/tsconfig.json',
@@ -81,6 +82,12 @@ export default [
       'class-methods-use-this': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
+    },
+  },
+  {
+    files: ['api/**/*.{ts,js}'],
+    rules: {
+      'import/no-relative-packages': 'off',
     },
   },
   {

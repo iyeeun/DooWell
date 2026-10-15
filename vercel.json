@@ -1,10 +1,24 @@
 {
-  "buildCommand": "pnpm --filter @web24/shared build && pnpm --filter @web24/frontend build",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @web24/shared build && pnpm --filter @web24/batch build && pnpm --filter @web24/backend build && pnpm --filter @web24/frontend build",
   "outputDirectory": "apps/frontend/dist",
+  "regions": ["syd1"],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 300,
+      "includeFiles": "apps/backend/src/features/goal/goal-templates.ndjson"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/internal/cron/daily-user-stats",
+      "schedule": "0 19 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://web24backend-production.up.railway.app/api/:path*"
+      "destination": "/api?__path=:path*"
     },
     {
       "source": "/(.*)",

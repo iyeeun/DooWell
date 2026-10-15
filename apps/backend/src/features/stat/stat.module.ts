@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 import { StatEventLog } from './stat-event-log.entity';
 import { DailyUserStat } from './daily-user-stat.entity';
 import { StatService } from './stat.service';
@@ -11,14 +10,14 @@ import { Behavior } from '../behavior/behavior.entity';
 import { StatController } from './stat.controller';
 import { SlackModule } from '../../common/slack/slack.module';
 import { DailyUserStatJob } from './daily-user-stat.job';
+import { CronController } from './cron.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, TodayBehavior, DailyUserStat, StatEventLog, Goal, Behavior]),
-    ScheduleModule.forRoot(),
     SlackModule,
   ],
-  controllers: [StatController],
+  controllers: [StatController, CronController],
   providers: [StatService, DailyUserStatJob],
 })
 export class StatModule {}

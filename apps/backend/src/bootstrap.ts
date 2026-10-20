@@ -2,12 +2,14 @@ import * as Sentry from '@sentry/nestjs';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { SwaggerModule } from '@nestjs/swagger';
 import type { OpenAPIObject } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { HttpExceptionLoggingFilter } from './common/logger/http-exception.filter';
 import { LoggingInterceptor } from './common/logger/logging.interceptor';
 import { openApiDocument } from './common/docs/openapi';
+import { isSwaggerEnabled } from './common/docs/swagger.config';
 
 let sentryInitialized = false;
 
@@ -44,7 +46,15 @@ export async function createNestApp(): Promise<NestExpressApplication> {
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new HttpExceptionLoggingFilter());
 
-  SwaggerModule.setup('api/docs', app, openApiDocument as OpenAPIObject);
+  const configService = app.get(ConfigService);
+  const swaggerEnabled = isSwaggerEnabled(
+    configService.get<boolean>('SWAGGER_ENABLED'),
+    configService.get<string>('NODE_ENV'),
+  );
+
+  if (swaggerEnabled) {
+    SwaggerModule.setup('api/docs', app, openApiDocument as OpenAPIObject);
+  }
 
   return app;
 }

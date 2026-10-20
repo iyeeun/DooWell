@@ -59,6 +59,7 @@ import { HealthController } from './health.controller';
         GOOGLE_CLIENT_SECRET: Joi.string().required(),
         GOOGLE_CALLBACK_URL: Joi.string().required(),
         FRONTEND_URL: Joi.string().required(),
+        SWAGGER_ENABLED: Joi.boolean().optional(),
         SLACK_WEBHOOK_URL: Joi.string().uri().optional(),
         CRON_SECRET: Joi.string().min(16).optional(),
       })

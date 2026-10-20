@@ -1,34 +1,28 @@
-import { useState } from 'react';
-import { ChatInput } from '@/features/dodoroom/components/ChatInput';
-import { ChatMessages } from '@/features/dodoroom/components/ChatMessages';
 import { DodoSpeechBubble } from '@/features/dodoroom/components/DodoSpeechBubble';
-import { useDodoChat } from '@/features/dodoroom/hooks/useDodoChat';
+import { useDodoRoom } from '@/features/dodoroom/hooks/useDodoRoom';
 import { DodoCharacter } from '@/features/dodoroom/components/DodoCharacter';
 import { DODO_ACTION_VALUES } from '@web24/shared';
 import { DodoActionButton } from '@/features/dodoroom/components/DodoActionButton';
 
 export function DodoRoomPage() {
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const {
     dodoAction,
-    messages,
-    input,
-    setInput,
-    canSend,
-    latestDodoMessage,
-    handleSend,
-    loadMoreMessages,
-    isLoadingHistory,
-    isSendingMessage,
-    isDodoResponding,
-    hasMore,
+    quote,
+    behaviors,
+    completedCount,
+    recommendedBehavior,
+    isLoading,
     handleActionButton,
-  } = useDodoChat();
+    handleInteraction,
+  } = useDodoRoom();
+
+  const progress =
+    behaviors.length === 0 ? 0 : Math.round((completedCount / behaviors.length) * 100);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col px-4 py-4">
-      <div className="flex h-100 flex-col gap-4 md:h-[55vh] md:flex-row">
-        <section className="bg-bg-light/80 relative flex max-h-[55vh] flex-1 items-center justify-center overflow-hidden rounded-3xl border border-transparent p-4 md:min-w-92">
+      <div className="flex flex-col gap-4 md:min-h-[55vh] md:flex-row">
+        <section className="bg-bg-light/80 relative flex min-h-100 flex-1 items-center justify-center overflow-hidden rounded-3xl border border-transparent p-4 md:min-w-92">
           <img
             src="/BlueAndWhiteRoom.webp"
             alt=""
@@ -38,7 +32,7 @@ export function DodoRoomPage() {
           />
           <div className="absolute inset-0 bg-black/5" />
           <div className="relative z-10 flex h-full w-full items-end justify-center rounded-2xl pb-10">
-            <DodoSpeechBubble text={latestDodoMessage?.text} />
+            <DodoSpeechBubble text={quote} />
             <DodoCharacter action={dodoAction} priority="high" />
           </div>
           <div className="absolute bottom-4 left-4 z-20 flex flex-col gap-2">
@@ -47,80 +41,75 @@ export function DodoRoomPage() {
                 key={action}
                 action={action}
                 onClick={handleActionButton}
-                disabled={isDodoResponding}
+                disabled={false}
               />
             ))}
           </div>
         </section>
 
-        <section className="border-primary-weak/60 bg-bg-light/80 hidden min-h-0 w-full max-w-md flex-col gap-4 rounded-3xl border p-4 md:flex">
-          <div className="text-label-normal text-sm font-semibold">채팅</div>
-          <ChatMessages
-            messages={messages}
-            onLoadMore={loadMoreMessages}
-            isLoading={isLoadingHistory}
-            isSendingMessage={isSendingMessage}
-            hasMore={hasMore}
-          />
-          <ChatInput
-            value={input}
-            canSend={canSend}
-            onChange={setInput}
-            onSend={() => handleSend()}
-          />
+        <section className="border-primary-weak/60 bg-bg-light/80 flex w-full flex-col gap-6 rounded-3xl border p-6 md:max-w-md">
+          <div>
+            <h2 className="text-label-normal text-lg font-bold">오늘의 두두</h2>
+            <p className="text-label-alternative mt-1 text-sm">
+              두두와 함께 오늘의 한 걸음을 이어가요.
+            </p>
+          </div>
+
+          <div className="bg-bg-alternative/60 rounded-2xl p-5">
+            <div className="flex items-center justify-between text-sm font-semibold">
+              <span>오늘의 진행</span>
+              <span>{isLoading ? '-' : `${completedCount}/${behaviors.length}`}</span>
+            </div>
+            <div className="bg-bg-alternative mt-3 h-2 overflow-hidden rounded-full">
+              <div
+                className="bg-primary-strong h-full rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-primary-weak/30 rounded-2xl p-5">
+            <div className="text-label-alternative text-xs font-semibold">지금 해볼 행동</div>
+            <div className="text-label-normal mt-2 font-bold">
+              {isLoading
+                ? '행동을 살펴보는 중...'
+                : (recommendedBehavior?.title ??
+                  (behaviors.length === 0
+                    ? '오늘의 행동을 추가해 보세요.'
+                    : '오늘의 행동을 모두 마쳤어요!'))}
+            </div>
+            {recommendedBehavior && (
+              <div className="text-label-alternative mt-1 text-sm">
+                {recommendedBehavior.goalTitle}
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <button
+              type="button"
+              onClick={() => handleInteraction('next')}
+              className="bg-primary-strong text-bg-light rounded-xl px-4 py-3 text-sm font-semibold"
+            >
+              오늘 뭐 하지?
+            </button>
+            <button
+              type="button"
+              onClick={() => handleInteraction('cheer')}
+              className="bg-bg-alternative text-label-normal rounded-xl px-4 py-3 text-sm font-semibold"
+            >
+              응원해 줘
+            </button>
+            <button
+              type="button"
+              onClick={() => handleInteraction('praise')}
+              className="bg-bg-alternative text-label-normal rounded-xl px-4 py-3 text-sm font-semibold"
+            >
+              오늘 수고했어
+            </button>
+          </div>
         </section>
       </div>
-
-      <div className="mt-4 flex flex-col gap-3 md:hidden">
-        <ChatInput
-          value={input}
-          canSend={canSend}
-          onChange={setInput}
-          onSend={() => handleSend()}
-        />
-        <button
-          type="button"
-          onClick={() => setIsMobileSheetOpen(true)}
-          className="bg-primary-strong text-bg-light rounded-full px-4 py-2 text-sm font-semibold shadow"
-        >
-          채팅 내역 보기
-        </button>
-      </div>
-
-      {isMobileSheetOpen && (
-        <div className="fixed inset-0 z-40 flex items-end md:hidden">
-          <button
-            type="button"
-            aria-label="채팅 닫기"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setIsMobileSheetOpen(false)}
-          />
-          <div className="border-primary-weak/60 bg-bg-light relative z-10 flex h-[60vh] min-h-0 w-full flex-col gap-4 rounded-t-3xl border p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-label-normal text-sm font-semibold">채팅</span>
-              <button
-                type="button"
-                onClick={() => setIsMobileSheetOpen(false)}
-                className="text-label-alternative text-sm"
-              >
-                닫기
-              </button>
-            </div>
-            <ChatMessages
-              messages={messages}
-              onLoadMore={loadMoreMessages}
-              isLoading={isLoadingHistory}
-              hasMore={hasMore}
-            />
-            <ChatInput
-              value={input}
-              canSend={canSend}
-              onChange={setInput}
-              onSend={() => handleSend()}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

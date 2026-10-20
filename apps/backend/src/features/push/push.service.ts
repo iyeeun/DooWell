@@ -12,7 +12,6 @@ import type {
 } from '@web24/shared';
 import { User } from '../user/user.entity';
 import { PushSubscriptionEntity } from './push-subscription.entity';
-import { DodoChatMessage, DODO_CHAT_ROLE } from '../chat/dodo-chat-message.entity';
 import { DODO_PUSH_MESSAGES, type DodoPushType } from './push.constants';
 
 @Injectable()
@@ -31,8 +30,6 @@ export class PushService implements OnModuleInit {
     private readonly pushSubscriptionRepository: Repository<PushSubscriptionEntity>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(DodoChatMessage)
-    private readonly dodoChatRepository: Repository<DodoChatMessage>,
   ) {
     this.vapidPublicKey = this.configService.getOrThrow<string>('VAPID_PUBLIC_KEY');
     this.vapidPrivateKey = this.configService.getOrThrow<string>('VAPID_PRIVATE_KEY');
@@ -198,16 +195,6 @@ export class PushService implements OnModuleInit {
       subscriptions.map((sub) =>
         limit(async () => {
           try {
-            // 1. 채팅 내역 저장
-            await this.dodoChatRepository.save(
-              this.dodoChatRepository.create({
-                user: sub.user,
-                role: DODO_CHAT_ROLE.ASSISTANT,
-                content,
-              }),
-            );
-
-            // 2. 푸시 발송
             await this.sendToUser(sub.user.id, {
               title: '두두의 메세지',
               body: content,

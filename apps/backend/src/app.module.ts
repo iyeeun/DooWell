@@ -16,11 +16,9 @@ import {
 } from '@web24/batch';
 import { GoalModule } from './features/goal/goal.module';
 import { BehaviorModule } from './features/behavior/behavior.module';
-import { AIModule } from './features/ai/ai.module';
 import { AuthModule } from './features/auth/auth.module';
 import { StatModule } from './features/stat/stat.module';
 import { PushModule } from './features/push/push.module';
-import { ChatModule } from './features/chat/chat.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -51,7 +49,6 @@ import { HealthController } from './health.controller';
         DATABASE_SSL: Joi.boolean().optional(),
         SESSION_SECRET: Joi.string().required(),
         SESSION_MAX_AGE_MS: Joi.number().required(),
-        CLOVA_API_KEY: Joi.string().optional(),
         VAPID_PUBLIC_KEY: Joi.string().required(),
         VAPID_PRIVATE_KEY: Joi.string().required(),
         VAPID_SUBJECT: Joi.string().required(),
@@ -108,11 +105,9 @@ import { HealthController } from './health.controller';
     BatchModule.forRoot({ dataSourceToken: getDataSourceToken() }),
     GoalModule,
     BehaviorModule,
-    AIModule,
     AuthModule,
     StatModule,
     PushModule,
-    ChatModule,
   ],
   controllers: [HealthController],
   providers: [

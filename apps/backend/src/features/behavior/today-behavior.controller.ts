@@ -11,18 +11,13 @@ import {
 } from '@nestjs/common';
 import {
   type DeleteTodayBehaviorResponse,
-  type GetAIBehaviorResponse,
   type GetTodayBehaviorsResponse,
-  type PatchAIBehaviorStatusRequest,
-  PatchAIBehaviorStatusRequestSchema,
-  PatchAIBehaviorStatusResponse,
   type PostTodayBehaviorRequest,
   PostTodayBehaviorRequestSchema,
   type PostTodayBehaviorResponse,
   type PatchTodayBehaviorStatusRequest,
   PatchTodayBehaviorStatusRequestSchema,
   PatchTodayBehaviorStatusResponse,
-  type PostAIBehaviorResponse,
 } from '@web24/shared';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { SessionAuthGuard } from '../../common/guards/session-auth.guard';
@@ -51,26 +46,6 @@ export class TodayBehaviorController {
     body: PostTodayBehaviorRequest,
   ): Promise<PostTodayBehaviorResponse> {
     return this.behaviorService.createTodayBehavior(userId, body.behaviorId);
-  }
-
-  @Get('/ai')
-  async getTodayAIBehaviors(@UserId() userId: string): Promise<GetAIBehaviorResponse> {
-    return this.behaviorService.getAIBehaviors(userId);
-  }
-
-  @Post('/ai')
-  async createAIBehaviors(@UserId() userId: string): Promise<PostAIBehaviorResponse> {
-    return this.behaviorService.createAIBehaviors(userId);
-  }
-
-  @Patch('/ai/:id/status')
-  async updateAIBehaviorStatus(
-    @UserId() userId: string,
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body(new ZodValidationPipe(PatchAIBehaviorStatusRequestSchema))
-    body: PatchAIBehaviorStatusRequest,
-  ): Promise<PatchAIBehaviorStatusResponse> {
-    return this.behaviorService.updateAIBehaviorStatus(userId, id, body.status);
   }
 
   @Patch(':id/status')

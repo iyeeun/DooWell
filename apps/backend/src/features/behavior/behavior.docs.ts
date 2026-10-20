@@ -2,13 +2,9 @@ import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import {
   DeleteTodayBehaviorResponseSchema,
   GetAllBehaviorsResponseSchema,
-  GetAIBehaviorResponseSchema,
   GetTodayBehaviorsResponseSchema,
   PostTodayBehaviorRequestSchema,
   PostTodayBehaviorResponseSchema,
-  PatchAIBehaviorStatusRequestSchema,
-  PatchAIBehaviorStatusResponseSchema,
-  PostAIBehaviorResponseSchema,
   PatchTodayBehaviorStatusRequestSchema,
   PatchTodayBehaviorStatusResponseSchema,
 } from '@web24/shared';
@@ -41,22 +37,6 @@ export function registerBehaviorApi(registry: OpenAPIRegistry, common: CommonSch
   const getAllBehaviorsResponse = registry.register(
     'GetAllBehaviorsResponse',
     GetAllBehaviorsResponseSchema,
-  );
-  const getAIBehaviorsResponse = registry.register(
-    'GetAIBehaviorResponse',
-    GetAIBehaviorResponseSchema,
-  );
-  const postAIBehaviorsResponse = registry.register(
-    'PostAIBehaviorResponse',
-    PostAIBehaviorResponseSchema,
-  );
-  const patchAIBehaviorStatusRequest = registry.register(
-    'PatchAIBehaviorStatusRequest',
-    PatchAIBehaviorStatusRequestSchema,
-  );
-  const patchAIBehaviorStatusResponse = registry.register(
-    'PatchAIBehaviorStatusResponse',
-    PatchAIBehaviorStatusResponseSchema,
   );
 
   const { errorResponse } = common;
@@ -130,72 +110,6 @@ export function registerBehaviorApi(registry: OpenAPIRegistry, common: CommonSch
       },
       404: {
         description: 'User 또는 Behavior를 찾을 수 없음',
-        content: {
-          'application/json': {
-            schema: errorResponse,
-          },
-        },
-      },
-    },
-  });
-
-  registry.registerPath({
-    method: 'get',
-    path: '/today-behaviors/ai',
-    security: [{ sessionAuth: [] }],
-    responses: {
-      200: {
-        description: '오늘 AI 행동 목록을 반환, 없으면 빈 리스트',
-        content: {
-          'application/json': {
-            schema: getAIBehaviorsResponse,
-          },
-        },
-      },
-    },
-  });
-
-  registry.registerPath({
-    method: 'post',
-    path: '/today-behaviors/ai',
-    security: [{ sessionAuth: [] }],
-    responses: {
-      200: {
-        description:
-          '오늘 AI 행동을 생성하고 반환, 추후 여러 AIBehavior 생성 가능성을 염두하여 현재는 하나의 값을 리스트에 담아서 반환',
-        content: {
-          'application/json': {
-            schema: postAIBehaviorsResponse,
-          },
-        },
-      },
-    },
-  });
-
-  registry.registerPath({
-    method: 'patch',
-    path: '/today-behaviors/ai/{id}/status',
-    security: [{ sessionAuth: [] }],
-    request: {
-      body: {
-        content: {
-          'application/json': {
-            schema: patchAIBehaviorStatusRequest,
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        description: 'AI behavior status updated',
-        content: {
-          'application/json': {
-            schema: patchAIBehaviorStatusResponse,
-          },
-        },
-      },
-      404: {
-        description: 'AI behavior not found',
         content: {
           'application/json': {
             schema: errorResponse,

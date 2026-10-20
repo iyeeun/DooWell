@@ -3,10 +3,8 @@ import { Hero } from '@/features/home/components/Hero';
 import useDodoChatStore from '@/stores/useDodoChatStore';
 import { useDodoToast } from '@/shared/hooks/useDodoToast';
 import { REWARD_LINES } from '@/features/goal/constants/dodo';
-import { AIBehaviorContainer } from '@/features/behavior/components/AIBehaviorContainer';
+import { RecommendedBehaviorContainer } from '@/features/behavior/components/RecommendedBehaviorContainer';
 import { TodayBehaviorList } from '@/features/behavior/components/TodayBehaviorList';
-import { useAIBehaviors } from '@/features/behavior/hooks/useAIBehaviors';
-import { updateAIBehaviorStatus } from '@/features/behavior/apis/updateAIBehaviorStatus.api';
 import { toast } from 'react-toastify';
 import { getRandomElement } from '@/shared/utils/random';
 import useAuthStore from '@/stores/useAuthStore';
@@ -20,7 +18,7 @@ import { useTodayBehaviorsDisplay } from '@/features/behavior/hooks/useTodayBeha
 
 export function IndexPage() {
   const { user } = useAuthStore();
-  const { data: behaviors = [] } = useTodayBehaviorsQuery(user?.id);
+  const { data: behaviors = [], isLoading: isLoadingBehaviors } = useTodayBehaviorsQuery(user?.id);
   const { data: goals = [] } = useGoalsQuery();
 
   const { mutate: toggleMutation } = useToggleTodayBehaviorMutation();
@@ -28,12 +26,6 @@ export function IndexPage() {
   const { mutate: refreshMutation } = useRefreshTodayBehaviorsMutation();
 
   const { quote, resetQuote } = useDodoChatStore();
-  const {
-    behaviors: aiBehaviors,
-    setBehaviors: setAIBehaviors,
-    isLoading,
-    isMaking,
-  } = useAIBehaviors();
   const showToast = useDodoToast();
   const heroRef = useRef<HTMLDivElement>(null);
   const isHeroVisible = useRef(true);
@@ -88,32 +80,10 @@ export function IndexPage() {
     handleRewardInteraction,
   });
 
-  const toggleAIBehaviorIsChecked = (behaviorId: string) => {
-    setAIBehaviors((bs) =>
-      bs.map((b) => (b.id === behaviorId ? { ...b, isChecked: !b.isChecked } : b)),
-    );
-  };
-
   const handleBehaviorDelete = (id: string) => {
     deleteMutation(id, {
       onError: () => toast('삭제에 실패했습니다.'),
     });
-  };
-
-  const handleAIBehaviorToggle = (id: string) => {
-    const targetBehavior = aiBehaviors.find((bs) => bs.id === id);
-    if (!targetBehavior) return;
-
-    toggleAIBehaviorIsChecked(id);
-
-    const nextStatus = targetBehavior.isChecked ? 'pending' : 'completed';
-    updateAIBehaviorStatus(id, nextStatus)
-      .then(() => {
-        if (nextStatus === 'completed') {
-          handleRewardInteraction(targetBehavior.goalTemplateId);
-        }
-      })
-      .catch(() => toggleAIBehaviorIsChecked(id));
   };
 
   const handleRefreshTodayBehaviors = () => {
@@ -136,12 +106,11 @@ export function IndexPage() {
         <Hero quote={quote} />
       </div>
 
-      {/* AI 추천 행동 */}
-      <AIBehaviorContainer
-        behaviors={aiBehaviors}
-        isLoading={isLoading}
-        isMaking={isMaking}
-        onToggle={handleAIBehaviorToggle}
+      {/* 지금 시작하기 좋은 추천 행동 */}
+      <RecommendedBehaviorContainer
+        behaviors={displayBehaviors}
+        isLoading={isLoadingBehaviors}
+        onToggle={handleBehaviorToggle}
       />
 
       {/* 오늘의 행동 */}

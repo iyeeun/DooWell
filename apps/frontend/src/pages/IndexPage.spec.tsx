@@ -96,6 +96,7 @@ describe('IndexPage', () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText('물 2L 마시기')).toBeInTheDocument();
+    expect(await screen.findByText('추천 행동')).toBeInTheDocument();
+    expect(await screen.findAllByText('물 2L 마시기')).toHaveLength(2);
   });
 });

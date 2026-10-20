@@ -333,9 +333,16 @@ export class LangGraphService {
 
   public async callClova(messages: BaseMessageLike[], model?: string): Promise<string> {
     const DEFAULT_MODEL = 'HCX-005';
+    const apiKey = this.configService.get<string>('CLOVA_API_KEY');
+
+    if (!apiKey) {
+      this.logger.warn('CLOVA_API_KEY is not set. AI features are unavailable.');
+      throw new ServiceUnavailableException('AI service is not configured');
+    }
+
     const llm = new ChatOpenAI({
       model: model ?? DEFAULT_MODEL,
-      apiKey: this.configService.getOrThrow<string>('CLOVA_API_KEY'),
+      apiKey,
       configuration: {
         baseURL: 'https://clovastudio.stream.ntruss.com/v1/openai',
       },

@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DODO_ACTIONS } from '@web24/shared';
 import { LangGraphService } from './lang-graph.service';
@@ -10,17 +11,19 @@ describe('LangGraphService', () => {
   let service: LangGraphService;
   const todayBehaviorRepository = { find: jest.fn() };
   const goalRepository = { find: jest.fn() };
+  const configService = { get: jest.fn() };
 
   beforeEach(async () => {
     todayBehaviorRepository.find.mockReset();
     goalRepository.find.mockReset();
+    configService.get.mockReset().mockReturnValue('test-key');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LangGraphService,
         {
           provide: ConfigService,
-          useValue: { getOrThrow: jest.fn().mockReturnValue('test-key') },
+          useValue: configService,
         },
         {
           provide: getRepositoryToken(TodayBehavior),
@@ -50,6 +53,16 @@ describe('LangGraphService', () => {
     final: undefined,
     llmCalls: 0,
     ...overrides,
+  });
+
+  describe('callClova', () => {
+    it('API key가 없으면 AI 기능에만 503 오류를 반환한다', async () => {
+      configService.get.mockReturnValue(undefined);
+
+      await expect(service.callClova([])).rejects.toThrow(
+        new ServiceUnavailableException('AI service is not configured'),
+      );
+    });
   });
 
   describe('invokeDodoAgent', () => {

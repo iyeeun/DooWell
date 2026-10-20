@@ -51,7 +51,7 @@ import { HealthController } from './health.controller';
         DATABASE_SSL: Joi.boolean().optional(),
         SESSION_SECRET: Joi.string().required(),
         SESSION_MAX_AGE_MS: Joi.number().required(),
-        CLOVA_API_KEY: Joi.string().required(),
+        CLOVA_API_KEY: Joi.string().optional(),
         VAPID_PUBLIC_KEY: Joi.string().required(),
         VAPID_PRIVATE_KEY: Joi.string().required(),
         VAPID_SUBJECT: Joi.string().required(),
